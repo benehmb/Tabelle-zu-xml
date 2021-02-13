@@ -20,7 +20,7 @@ namespace Marvin_Tabelle_zu_xml
         /// <summary>
         /// File, in which output is stored
         /// </summary>
-        private static string outputFile = @"C:\Users\Benedikt\Nextcloud (Bene)\InventorTools\Senkungenoutput.xml";
+        private static string outputFile = @"Senkungenoutput.xml";
 
         /// <summary>
         /// fallback default value if no value is set in table if there is no specific
@@ -40,7 +40,7 @@ namespace Marvin_Tabelle_zu_xml
             //initialize the list 
             new List<KeyValuePair<string, string>> {
                 //setten Values not by names, but refered to the Objects of <see cref="values"/>
-                new KeyValuePair<string, string>("Bohrrungstyp", "Zapfen"),
+                new KeyValuePair<string, string>("Bohrungstyp", "Zapfen"),
                 new KeyValuePair<string, string>("Flach", "ja"),
                 new KeyValuePair<string, string>("Ø_x0020_Tol.", "H13(E)"),
                 new KeyValuePair<string, string>("Flach", "ja"),
@@ -79,9 +79,9 @@ namespace Marvin_Tabelle_zu_xml
         public static string DefaultValue { get => fallbackDefaultValue; }
 
         /// <summary>
-        /// getter of <see cref="outputFile"/>
+        /// getter and setter of <see cref="outputFile"/>
         /// </summary>
-        public static string OutputFile { get => outputFile;  }
+        public static string OutputFile { get => outputFile; set => outputFile = value; }
 
         /// <summary>
         /// getter for <see cref="defaultValues"/>-list

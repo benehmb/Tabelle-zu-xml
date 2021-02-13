@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <RootNamespace>Marvin_Tabelle_zu_xml</RootNamespace>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
 </Project>

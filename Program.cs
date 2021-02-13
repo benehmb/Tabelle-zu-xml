@@ -2,26 +2,67 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml;
 
 namespace Marvin_Tabelle_zu_xml
 {
     class Program
-    { 
+    {
         #region main
         /// <summary>
         /// main methode
         /// </summary>
         /// <param name="args"></param>
-       public static async System.Threading.Tasks.Task Main(string[] args)
-       {
-            string filepath = getFilePath();
+        public static async System.Threading.Tasks.Task Main(string[] args)
+        {
+            #region Get input-parameter
+            string OutputFilePath="";
+            string InputFilePath = "";
+            if (args.Length != 0)
+            {
+                for (int i = 0; i < args.Length; i+=2)
+                {
+                    if (args[i].Equals("-o"))
+                    {
+                        OutputFilePath = args[i + 1];
+                    }
+                    else if (args[i].Equals("-f"))
+                    {
+                        InputFilePath = args[i + 1];
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Unknown Argument: " + args[i]);
+                    }
+                }
+            }
+            if (String.IsNullOrEmpty(InputFilePath))
+                InputFilePath = getFilePath("Pfad zur CSV-datei: ");
 
-            List<KeyList> PresetData = readContent(filepath);
+            if(String.IsNullOrEmpty(OutputFilePath))
+                OutputFilePath = getFilePath("Pfad zur Ausgabe-Date: ");
+            #endregion
 
-            List<KeyList> OutputValues = createAndCompareValues(PresetData, Settings.getValues(), Settings.DefaultValues, Settings.DefaultValue) ; ;
+            #region Check input-parameter
+            if (!InputFilePath.ToLower().EndsWith(".csv") && (File.GetAttributes(OutputFilePath) & FileAttributes.Directory) != FileAttributes.Directory)
+                throw new ArgumentException("Der angegebene Pfad ist nicht gültig!");
 
+            if (OutputFilePath.EndsWith("\\"))
+                OutputFilePath += Settings.OutputFile;
+            else if((File.GetAttributes(OutputFilePath) & FileAttributes.Directory) == FileAttributes.Directory)
+                OutputFilePath += "\\" + Settings.OutputFile;
+            else if (!OutputFilePath.ToLower().EndsWith(".xml"))
+                throw new ArgumentException("Der angegebene Pfad ist nicht gültig!");
+
+            // Set output-file-path
+            Settings.OutputFile = OutputFilePath;
+            #endregion
+
+            // Get given data
+            List<KeyList> PresetData = readContent(InputFilePath);
+
+            // Prepare given data and Settings for output
+            List<KeyList> OutputValues = createAndCompareValues(PresetData, Settings.getValues(), Settings.DefaultValues, Settings.DefaultValue); ;
 
             Console.WriteLine("Names and Values: ");
             foreach (KeyList outputValue in OutputValues)
@@ -31,12 +72,13 @@ namespace Marvin_Tabelle_zu_xml
                 Console.WriteLine();
             }
 
+            // Write anything in XML-file
             await generateXmlFileAsync(OutputValues, Settings.OutputFile);
 
 
             // Suspend the screen.  
             System.Console.ReadLine();
-       }
+        }
 
         #endregion
 
@@ -44,11 +86,12 @@ namespace Marvin_Tabelle_zu_xml
         /// <summary>
         /// get the path tho the File, without '"'
         /// </summary>
+        /// <param name="output">String to be printed</param>
         /// <returns>path to csv-file</returns>
-        private static string getFilePath()
+        private static string getFilePath(string output)
         {
             // Get path
-            Console.Write("Dateipfad: ");
+            Console.Write(output);
             string filepath = Console.ReadLine();
 
             // Remove '"', which is added if you directly pull file into script
@@ -107,13 +150,13 @@ namespace Marvin_Tabelle_zu_xml
             #region initialize
             //set the maximum lenght of each list to the shortes row of the original Table to prevent null-pointer
             // count -1 becaus we want the biggest i#ndex
-            int maxLength = presetData[0].keyValues.Count()-1;
+            int maxLength = presetData[0].keyValues.Count() - 1;
 
             foreach (KeyList preset in presetData)
             {
-                if(preset.keyValues.Count()-1 < maxLength)
+                if (preset.keyValues.Count() - 1 < maxLength)
                 {
-                    maxLength = preset.keyValues.Count()-1;
+                    maxLength = preset.keyValues.Count() - 1;
                 }
             }
 
@@ -124,24 +167,10 @@ namespace Marvin_Tabelle_zu_xml
             // Filling output list
             foreach (string xmlAttribute in xmlAttributes)
             {
-                // Setting Name of XML-Attribute
-                KeyList outputItem = new KeyList(xmlAttribute);
-
-                //check if there is somthing in the Presets matching
-                if(presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1 && !xmlAttribute.Equals("Favorit") && !xmlAttribute.Equals("M"))
+                //Exclude special case for "Favorit" and "M"
+                if(xmlAttribute.Equals("Favorit") )
                 {
-                    #region presets to set
-                    // Make a list of things to set...
-                    List<string> valuesToSet = presetData.Find(x => x.keyName.Equals(xmlAttribute)).keyValues;
-                    // ...and set it for each item
-                    for(int i = 0; i <= maxLength; i++)
-                    {
-                        outputItem.keyValues.Add(valuesToSet[i]);
-                    }
-                    #endregion
-                }
-                else if (xmlAttribute.Equals("Favorit"))
-                {
+                    KeyList outputItem = new KeyList(xmlAttribute);
                     List<string> valuesToSet = presetData.Find(x => x.keyName.Equals("M")).keyValues;
                     // Checking if there is a specific default value and if so, sets it
 
@@ -150,37 +179,57 @@ namespace Marvin_Tabelle_zu_xml
                     {
                         outputItem.keyValues.Add(Settings.FavoritString + " M" + valuesToSet[i]);
                     }
+                    outputData.Add(outputItem);
                 }
                 else if (xmlAttribute.Equals("M"))
                 {
-                    //do nothing
+                    //do nothing and ignore it
                 }
                 else
                 {
-                    #region defaults to set
-                    // Initializing default value
-                    string valueToSet = fallbackDefaultValue;
-                    // Checking if there is a specific default value and if so, sets it
-                    if (defaultValues.FindIndex(x => x.Key.Equals(xmlAttribute)) != -1)
-                        valueToSet = defaultValues.Find(x => x.Key.Equals(xmlAttribute)).Value;
+                    // Setting Name of XML-Attribute
+                    KeyList outputItem = new KeyList(xmlAttribute);
 
-                    //setting default-FValues
-                    for (int i = 0; i <= maxLength; i++)
+                    //check if there is somthing in the Presets matching
+                    if (presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1)
                     {
-                        outputItem.keyValues.Add(valueToSet);
+                        #region presets to set
+                        // Make a list of things to set...
+                        List<string> valuesToSet = presetData.Find(x => x.keyName.Equals(xmlAttribute)).keyValues;
+                        // ...and set it for each item
+                        for (int i = 0; i <= maxLength; i++)
+                        {
+                            outputItem.keyValues.Add(valuesToSet[i]);
+                        }
+                        #endregion
                     }
-                    #endregion
+                    else
+                    {
+                        #region defaults to set
+                        // Initializing default value
+                        string valueToSet = fallbackDefaultValue;
+                        // Checking if there is a specific default value and if so, sets it
+                        if (defaultValues.FindIndex(x => x.Key.Equals(xmlAttribute)) != -1)
+                            valueToSet = defaultValues.Find(x => x.Key.Equals(xmlAttribute)).Value;
+
+                        //setting default-FValues
+                        for (int i = 0; i <= maxLength; i++)
+                        {
+                            outputItem.keyValues.Add(valueToSet);
+                        }
+                        #endregion
+                    }
+                    // Finally adding it for each item to the output-object
+                    outputData.Add(outputItem);
                 }
-                // Finally adding it for each item to the output-object
-                outputData.Add(outputItem);
-                
+
             }
 
             //check, if there are attributes in the presetData, which arent in the xmlAttributes, but have to be set
-            foreach(KeyList presetItem in presetData)
+            foreach (KeyList presetItem in presetData)
             {
-                //finding none existing attribute
-                if(xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1 && !presetItem.keyName.Equals("Favorit") && !presetItem.keyName.Equals("M"))
+                //finding none existing attribute; Exclude special case for "Favorit" and "M"
+                if (xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1 && !presetItem.keyName.Equals("Favorit") && !presetItem.keyName.Equals("M"))
                 {
                     // Setting Name of XML-Attribute
                     KeyList outputItem = new KeyList(presetItem.keyName);
@@ -215,10 +264,10 @@ namespace Marvin_Tabelle_zu_xml
             using (FileStream fileStream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
             {
                 //create header
-               /*string header = "<?xml version=\"1.0\" standalone=\"yes\"?>";
-                fileStream.Write(Encoding.UTF8.GetBytes(header), 0, Encoding.UTF8.GetByteCount(header));*/
+                /*string header = "<?xml version=\"1.0\" standalone=\"yes\"?>";
+                 fileStream.Write(Encoding.UTF8.GetBytes(header), 0, Encoding.UTF8.GetByteCount(header));*/
                 using (XmlWriter writer = XmlWriter.Create(fileStream, settings))
-                {   
+                {
                     // Write root-element
                     await writer.WriteStartElementAsync(null, "DocumentElement", null);
                     // for each column
@@ -229,7 +278,7 @@ namespace Marvin_Tabelle_zu_xml
                         //for each row
                         for (int j = 0; j < outputValues.Count; j++)
                         {
-                            await writer.WriteStartElementAsync( null, outputValues[j].keyName, null);
+                            await writer.WriteStartElementAsync(null, outputValues[j].keyName, null);
                             await writer.WriteStringAsync(outputValues[j].keyValues[i]);
                             await writer.WriteEndElementAsync();
                         }
