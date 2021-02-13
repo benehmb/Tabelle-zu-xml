@@ -128,7 +128,7 @@ namespace Marvin_Tabelle_zu_xml
                 KeyList outputItem = new KeyList(xmlAttribute);
 
                 //check if there is somthing in the Presets matching
-                if(presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1)
+                if(presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1 && !xmlAttribute.Equals("Favorit") && !xmlAttribute.Equals("M"))
                 {
                     #region presets to set
                     // Make a list of things to set...
@@ -139,6 +139,21 @@ namespace Marvin_Tabelle_zu_xml
                         outputItem.keyValues.Add(valuesToSet[i]);
                     }
                     #endregion
+                }
+                else if (xmlAttribute.Equals("Favorit"))
+                {
+                    List<string> valuesToSet = presetData.Find(x => x.keyName.Equals("M")).keyValues;
+                    // Checking if there is a specific default value and if so, sets it
+
+                    //setting favorite-alues
+                    for (int i = 0; i <= maxLength; i++)
+                    {
+                        outputItem.keyValues.Add(Settings.FavoritString + " M" + valuesToSet[i]);
+                    }
+                }
+                else if (xmlAttribute.Equals("M"))
+                {
+                    //do nothing
                 }
                 else
                 {
@@ -165,7 +180,7 @@ namespace Marvin_Tabelle_zu_xml
             foreach(KeyList presetItem in presetData)
             {
                 //finding none existing attribute
-                if(xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1)
+                if(xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1 && !presetItem.keyName.Equals("Favorit") && !presetItem.keyName.Equals("M"))
                 {
                     // Setting Name of XML-Attribute
                     KeyList outputItem = new KeyList(presetItem.keyName);

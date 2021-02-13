@@ -6,6 +6,12 @@ namespace Marvin_Tabelle_zu_xml
     {
         //TODO Make this class to be fenerated by settings
         #region private properties
+
+        /// <summary>
+        /// Start of "Favorit"-String
+        /// </summary>
+        private static string favoritString = "Senkung Zylinderkopf ISO 4762";
+
         /// <summary>
         /// Divider, between data of file
         /// </summary>
@@ -81,6 +87,11 @@ namespace Marvin_Tabelle_zu_xml
         /// getter for <see cref="defaultValues"/>-list
         /// </summary>
         public static List<KeyValuePair<string, string>> DefaultValues { get => defaultValues; }
+
+        /// <summary>
+        /// getter for <see cref="favoritString"/>
+        /// </summary>
+        public static string FavoritString { get => favoritString; }
 
         #endregion
 
