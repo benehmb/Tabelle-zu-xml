@@ -31,7 +31,7 @@ namespace Marvin_Tabelle_zu_xml
                 Console.WriteLine();
             }
 
-            await generateXmlFileAsync(PresetData, Settings.getValues(), Settings.OutputFile);
+            await generateXmlFileAsync(OutputValues, Settings.OutputFile);
 
 
             // Suspend the screen.  
@@ -188,30 +188,41 @@ namespace Marvin_Tabelle_zu_xml
         /// <param name="tabelDatas">names and values to generate/replace</param>
         /// <param name="lists">all names</param>
         /// <param name="outputFile">file to store XML</param>
-        private static async System.Threading.Tasks.Task generateXmlFileAsync(List<KeyList> tabelDatas, List<string> lists, string outputFile)
+        private static async System.Threading.Tasks.Task generateXmlFileAsync(List<KeyList> outputValues, string outputFile)
         {
-            //throw new NotImplementedException();
-
             // Set some settings
             XmlWriterSettings settings = new XmlWriterSettings()
             {
-                Async = true
+                Async = true,
             };
 
             //create filestream
             using (FileStream fileStream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
             {
-                string header = "<?xml version=\"1.0\" standalone=\"yes\"?>";
-                fileStream.Write(Encoding.UTF8.GetBytes(header), 0, Encoding.UTF8.GetByteCount(header));
+                //create header
+               /*string header = "<?xml version=\"1.0\" standalone=\"yes\"?>";
+                fileStream.Write(Encoding.UTF8.GetBytes(header), 0, Encoding.UTF8.GetByteCount(header));*/
                 using (XmlWriter writer = XmlWriter.Create(fileStream, settings))
                 {   
-                    await writer.WriteStartElementAsync(null, "DocumentElement", null);  
-                    //TODO for each row
-                    await writer.WriteStartElementAsync(null, "Favoriten", null);
+                    // Write root-element
+                    await writer.WriteStartElementAsync(null, "DocumentElement", null);
+                    // for each column
+                    for (int i = 0; i < outputValues[0].keyValues.Count; i++)
+                    {
+                        await writer.WriteStartElementAsync(null, "Favoriten", null);
+
+                        //for each row
+                        for (int j = 0; j < outputValues.Count; j++)
+                        {
+                            await writer.WriteStartElementAsync( null, outputValues[j].keyName, null);
+                            await writer.WriteStringAsync(outputValues[j].keyValues[i]);
+                            await writer.WriteEndElementAsync();
+                        }
+                        await writer.WriteEndElementAsync();
+                    }
                     //TODO for each element in data
-                    writer.WriteAttributeString("xmlns", "x", null, "abc");
-                    writer.WriteEndElement();
-                    writer.WriteEndElement();
+                    await writer.WriteEndElementAsync();
+                    writer.Close();
                 }
                 fileStream.Close();
             }
