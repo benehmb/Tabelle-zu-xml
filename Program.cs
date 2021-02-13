@@ -15,19 +15,19 @@ namespace Marvin_Tabelle_zu_xml
         /// </summary>
         /// <param name="args"></param>
        public static async System.Threading.Tasks.Task Main(string[] args)
-        {
+       {
             string filepath = getFilePath();
 
             List<KeyList> PresetData = readContent(filepath);
 
-            List<KeyList> OutputValues = createAndCompareValues(PresetData, Settings.getValues()); ;
+            List<KeyList> OutputValues = createAndCompareValues(PresetData, Settings.getValues(), Settings.DefaultValues, Settings.DefaultValue) ; ;
 
 
             Console.WriteLine("Names and Values: ");
-            foreach (KeyList pPresetData in PresetData)
+            foreach (KeyList outputValue in OutputValues)
             {
-                Console.Write("Name: " + pPresetData.keyName + " Values: ");
-                pPresetData.keyValues.ForEach(value => Console.Write("{0}\t", value));
+                Console.Write("Name: " + outputValue.keyName + " Values: ");
+                outputValue.keyValues.ForEach(value => Console.Write("{0}\t", value));
                 Console.WriteLine();
             }
 
@@ -36,7 +36,7 @@ namespace Marvin_Tabelle_zu_xml
 
             // Suspend the screen.  
             System.Console.ReadLine();
-        }
+       }
 
         #endregion
 
@@ -97,15 +97,89 @@ namespace Marvin_Tabelle_zu_xml
         /// <summary>
         /// Make a List of Names and Values to print in xml vie <see cref="createAndCompareValues(List{KeyList}, List{string})"/>
         /// </summary>
-        /// <param name="tabelDatas">Read Names and Values</param>
-        /// <param name="lists">Only names to generate values</param>
+        /// <param name="presetData">Ridden Names and Values</param>
+        /// <param name="xmlAttributes">Only names to generate values</param>
+        /// <param name="defaultValues">Default values for some of the <paramref name="xmlAttributes"/></param>
+        /// <param name="fallbackDefaultValue">Default value if there is no value set in <paramref name="presetData"/> and <paramref name="defaultValues"/></param>
         /// <returns>Complete list with names and values</returns>
-        private static List<KeyList> createAndCompareValues(List<KeyList> PresetData, List<string> lists)
+        private static List<KeyList> createAndCompareValues(List<KeyList> presetData, List<string> xmlAttributes, List<KeyValuePair<string, string>> defaultValues, string fallbackDefaultValue)
         {
-            throw new NotImplementedException();
-            //todo Set default Values, if nothing else exists.
-            //Override Settings.defaultValues if there are Values in PresetData,
-            //add new Values if there are some in PresetData
+            #region initialize
+            //set the maximum lenght of each list to the shortes row of the original Table to prevent null-pointer
+            // count -1 becaus we want the biggest i#ndex
+            int maxLength = presetData[0].keyValues.Count()-1;
+
+            foreach (KeyList preset in presetData)
+            {
+                if(preset.keyValues.Count()-1 < maxLength)
+                {
+                    maxLength = preset.keyValues.Count()-1;
+                }
+            }
+
+            // Create empty output list
+            List<KeyList> outputData = new List<KeyList>();
+            #endregion
+            #region compareism
+            // Filling output list
+            foreach (string xmlAttribute in xmlAttributes)
+            {
+                // Setting Name of XML-Attribute
+                KeyList outputItem = new KeyList(xmlAttribute);
+
+                //check if there is somthing in the Presets matching
+                if(presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1)
+                {
+                    #region presets to set
+                    // Make a list of things to set...
+                    List<string> valuesToSet = presetData.Find(x => x.keyName.Equals(xmlAttribute)).keyValues;
+                    // ...and set it for each item
+                    for(int i = 0; i <= maxLength; i++)
+                    {
+                        outputItem.keyValues.Add(valuesToSet[i]);
+                    }
+                    #endregion
+                }
+                else
+                {
+                    #region defaults to set
+                    // Initializing default value
+                    string valueToSet = fallbackDefaultValue;
+                    // Checking if there is a specific default value and if so, sets it
+                    if (defaultValues.FindIndex(x => x.Key.Equals(xmlAttribute)) != -1)
+                        valueToSet = defaultValues.Find(x => x.Key.Equals(xmlAttribute)).Value;
+
+                    //setting default-FValues
+                    for (int i = 0; i <= maxLength; i++)
+                    {
+                        outputItem.keyValues.Add(valueToSet);
+                    }
+                    #endregion
+                }
+                // Finally adding it for each item to the output-object
+                outputData.Add(outputItem);
+                
+            }
+
+            //check, if there are attributes in the presetData, which arent in the xmlAttributes, but have to be set
+            foreach(KeyList presetItem in presetData)
+            {
+                //finding none existing attribute
+                if(xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1)
+                {
+                    // Setting Name of XML-Attribute
+                    KeyList outputItem = new KeyList(presetItem.keyName);
+                    // Set values for key
+                    for (int i = 0; i <= maxLength; i++)
+                    {
+                        outputItem.keyValues.Add(presetItem.keyValues[i]);
+                    }
+                    outputData.Add(outputItem);
+                }
+            }
+            #endregion
+
+            return outputData;
         }
 
         /// <summary>

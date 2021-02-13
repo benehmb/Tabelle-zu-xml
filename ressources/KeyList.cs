@@ -23,19 +23,12 @@ namespace Marvin_Tabelle_zu_xml
 
         #region constructor
         /// <summary>
-        /// Default constructor
-        /// </summary>
-        public KeyList() {
-            keyValues = new List<string>();
-        }
-
-        /// <summary>
         /// Constructor with direct Setter for line name
         /// </summary>
-        /// <param name="lineName">name of the line</param>
-        public KeyList(string lineName)
+        /// <param name="keyName">name of the line</param>
+        public KeyList(string keyName)
         {
-            this.keyName = lineName;
+            this.keyName = keyName;
             keyValues = new List<string>();
         }
 

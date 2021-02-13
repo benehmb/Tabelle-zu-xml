@@ -34,15 +34,30 @@ namespace Marvin_Tabelle_zu_xml
             //initialize the list 
             new List<KeyValuePair<string, string>> {
                 //setten Values not by names, but refered to the Objects of <see cref="values"/>
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Bohrrungstyp")), "Zapfen"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Flach")), "ja"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Ø_x0020_Tol.")), "H13(E)"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Flach")), "ja"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Ausführungstyp")), "Durch"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Abstand")), "Durch"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Ø_2_x0020_Tol.")), "H13(E)"),
-                new KeyValuePair<string, string>(values.Find( x => x.Equals("Tiefe_x0020_Tol.>")), "0,01 mm/0 mm(B)")
+                new KeyValuePair<string, string>("Bohrrungstyp", "Zapfen"),
+                new KeyValuePair<string, string>("Flach", "ja"),
+                new KeyValuePair<string, string>("Ø_x0020_Tol.", "H13(E)"),
+                new KeyValuePair<string, string>("Flach", "ja"),
+                new KeyValuePair<string, string>("Ausführungstyp", "Durch"),
+                new KeyValuePair<string, string>("Abstand", "Durch"),
+                new KeyValuePair<string, string>("Ø_2_x0020_Tol.", "H13(E)"),
+                new KeyValuePair<string, string>("Tiefe_x0020_Tol.>", "0,01 mm/0 mm(B)")
             };
+        #region newer but disfunctional Version of defaultValues
+        /*   private static List<KeyValuePair<string, string>> defaultValues =
+                //initialize the list 
+                new List<KeyValuePair<string, string>> {
+                    //setten Values not by names, but refered to the Objects of <see cref="values"/>
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Bohrrungstyp")), "Zapfen"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Flach")), "ja"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Ø_x0020_Tol.")), "H13(E)"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Flach")), "ja"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Ausführungstyp")), "Durch"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Abstand")), "Durch"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Ø_2_x0020_Tol.")), "H13(E)"),
+                    new KeyValuePair<string, string>(values.Find( x => x.Equals("Tiefe_x0020_Tol.>")), "0,01 mm/0 mm(B)")
+                };*/
+        #endregion
         #endregion
 
         #region public properties
@@ -65,7 +80,7 @@ namespace Marvin_Tabelle_zu_xml
         /// <summary>
         /// getter for <see cref="defaultValues"/>-list
         /// </summary>
-        public static List<KeyValuePair<string, string>> DefaultValues { get => defaultValues };
+        public static List<KeyValuePair<string, string>> DefaultValues { get => defaultValues; }
 
         #endregion
 
