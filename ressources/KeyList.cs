@@ -4,36 +4,39 @@ using System.Text;
 
 namespace Marvin_Tabelle_zu_xml
 {
-    class TabelData
+    /// <summary>
+    /// Class to be used for Key lists with multiple values, or objects
+    /// </summary>
+    class KeyList
     {
         #region public properties
         /// <summary>
         /// Private attribute for name of line
         /// </summary>
-        public string lineName;
+        public string keyName;
 
         /// <summary>
         /// Private attribute for values of line
         /// </summary>
-        public List<String> lineValues;
+        public List<String> keyValues;
         #endregion
 
         #region constructor
         /// <summary>
         /// Default constructor
         /// </summary>
-        public TabelData() {
-            lineValues = new List<string>();
+        public KeyList() {
+            keyValues = new List<string>();
         }
 
         /// <summary>
         /// Constructor with direct Setter for line name
         /// </summary>
         /// <param name="lineName">name of the line</param>
-        public TabelData(string lineName)
+        public KeyList(string lineName)
         {
-            this.lineName = lineName;
-            lineValues = new List<string>();
+            this.keyName = lineName;
+            keyValues = new List<string>();
         }
 
         #endregion

@@ -18,21 +18,26 @@ namespace Marvin_Tabelle_zu_xml
         {
             string filepath = getFilePath();
 
-            List<TabelData> tabelDatas = readContent(filepath);
+            List<KeyList> PresetData = readContent(filepath);
 
-            await generateXmlFileAsync(tabelDatas, XmlValues.getValues(), XmlValues.OutputFile);
+            List<KeyList> OutputValues = createAndCompareValues(PresetData, Settings.getValues()); ;
 
 
             Console.WriteLine("Names and Values: ");
-            foreach (TabelData tabeldata in tabelDatas)
+            foreach (KeyList pPresetData in PresetData)
             {
-                Console.Write("Name: " + tabeldata.lineName + " Values: ");
-                tabeldata.lineValues.ForEach(value => Console.Write("{0}\t", value));
+                Console.Write("Name: " + pPresetData.keyName + " Values: ");
+                pPresetData.keyValues.ForEach(value => Console.Write("{0}\t", value));
                 Console.WriteLine();
             }
+
+            await generateXmlFileAsync(PresetData, Settings.getValues(), Settings.OutputFile);
+
+
             // Suspend the screen.  
             System.Console.ReadLine();
         }
+
         #endregion
 
         #region helperfunctions
@@ -51,14 +56,14 @@ namespace Marvin_Tabelle_zu_xml
         }
 
         /// <summary>
-        /// return content for csv-file as <see cref="TabelData"/> object
+        /// return content for csv-file as <see cref="KeyList"/> object
         /// </summary>
         /// <param name="filepath">path to file</param>
-        /// <returns><see cref="TabelData"/> object, containing values of file</returns>
-        private static List<TabelData> readContent(string filepath)
+        /// <returns><see cref="KeyList"/> object, containing values of file</returns>
+        private static List<KeyList> readContent(string filepath)
         {
             // Create empty ist in which all the Data of the File is stored
-            List<TabelData> tabelDatas = new List<TabelData>();
+            List<KeyList> tabelDatas = new List<KeyList>();
 
             // Create empty property for line
             string line;
@@ -67,19 +72,19 @@ namespace Marvin_Tabelle_zu_xml
             System.IO.StreamReader file = new System.IO.StreamReader(filepath);
             while ((line = file.ReadLine()) != null)
             {
-                string[] lineContent = line.Split(XmlValues.Delimiter);
+                string[] lineContent = line.Split(Settings.Delimiter);
                 // Do nothing if there is nothing in this line
                 if (lineContent[0] != "" || lineContent[0] != " " || lineContent.Length <= 0)
                 {
                     // Setting firs sign of line as name of line
-                    TabelData row = new TabelData(lineContent[0]);
+                    KeyList row = new KeyList(lineContent[0]);
 
                     // Remove linename, to not be the first value
                     lineContent = lineContent.Skip(1).ToArray();
                     // Add content
                     foreach (string value in lineContent)
                     {
-                        row.lineValues.Add(value);
+                        row.keyValues.Add(value);
                     }
                     tabelDatas.Add(row);
                 }
@@ -90,12 +95,26 @@ namespace Marvin_Tabelle_zu_xml
         }
 
         /// <summary>
+        /// Make a List of Names and Values to print in xml vie <see cref="createAndCompareValues(List{KeyList}, List{string})"/>
+        /// </summary>
+        /// <param name="tabelDatas">Read Names and Values</param>
+        /// <param name="lists">Only names to generate values</param>
+        /// <returns>Complete list with names and values</returns>
+        private static List<KeyList> createAndCompareValues(List<KeyList> PresetData, List<string> lists)
+        {
+            throw new NotImplementedException();
+            //todo Set default Values, if nothing else exists.
+            //Override Settings.defaultValues if there are Values in PresetData,
+            //add new Values if there are some in PresetData
+        }
+
+        /// <summary>
         /// Generates xml-file out of presets
         /// </summary>
         /// <param name="tabelDatas">names and values to generate/replace</param>
         /// <param name="lists">all names</param>
         /// <param name="outputFile">file to store XML</param>
-        private static async System.Threading.Tasks.Task generateXmlFileAsync(List<TabelData> tabelDatas, List<string> lists, string outputFile)
+        private static async System.Threading.Tasks.Task generateXmlFileAsync(List<KeyList> tabelDatas, List<string> lists, string outputFile)
         {
             //throw new NotImplementedException();
 
@@ -120,6 +139,7 @@ namespace Marvin_Tabelle_zu_xml
                     writer.WriteEndElement();
                     writer.WriteEndElement();
                 }
+                fileStream.Close();
             }
         }
         #endregion
