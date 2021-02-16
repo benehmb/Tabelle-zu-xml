@@ -164,72 +164,55 @@ namespace Marvin_Tabelle_zu_xml
             List<KeyList> outputData = new List<KeyList>();
             #endregion
             #region compareism
+            //Handling special cases ("Favorit" and "M")
+            specialCaseHandling(outputData, presetData, xmlAttributes, maxLength);
+
             // Filling output list
             foreach (string xmlAttribute in xmlAttributes)
             {
-                //Exclude special case for "Favorit" and "M"
-                if(xmlAttribute.Equals("Favorit") )
-                {
-                    KeyList outputItem = new KeyList(xmlAttribute);
-                    List<string> valuesToSet = presetData.Find(x => x.keyName.Equals("M")).keyValues;
-                    // Checking if there is a specific default value and if so, sets it
+                // Setting Name of XML-Attribute
+                KeyList outputItem = new KeyList(xmlAttribute);
 
-                    //setting favorite-alues
+                //check if there is somthing in the Presets matching
+                if (presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1)
+                {
+                    #region presets to set
+                    // Make a list of things to set...
+                    List<string> valuesToSet = presetData.Find(x => x.keyName.Equals(xmlAttribute)).keyValues;
+                    // ...and set it for each item
                     for (int i = 0; i <= maxLength; i++)
                     {
-                        outputItem.keyValues.Add(Settings.FavoritString + " M" + valuesToSet[i]);
+                        outputItem.keyValues.Add(valuesToSet[i]);
                     }
-                    outputData.Add(outputItem);
-                }
-                else if (xmlAttribute.Equals("M"))
-                {
-                    //do nothing and ignore it
+                    #endregion
                 }
                 else
                 {
-                    // Setting Name of XML-Attribute
-                    KeyList outputItem = new KeyList(xmlAttribute);
+                    #region defaults to set
+                    // Initializing default value
+                    string valueToSet = fallbackDefaultValue;
+                    // Checking if there is a specific default value and if so, sets it
+                    if (defaultValues.FindIndex(x => x.Key.Equals(xmlAttribute)) != -1)
+                        valueToSet = defaultValues.Find(x => x.Key.Equals(xmlAttribute)).Value;
 
-                    //check if there is somthing in the Presets matching
-                    if (presetData.FindIndex(x => x.keyName.Equals(xmlAttribute)) != -1)
+                    //setting default-FValues
+                    for (int i = 0; i <= maxLength; i++)
                     {
-                        #region presets to set
-                        // Make a list of things to set...
-                        List<string> valuesToSet = presetData.Find(x => x.keyName.Equals(xmlAttribute)).keyValues;
-                        // ...and set it for each item
-                        for (int i = 0; i <= maxLength; i++)
-                        {
-                            outputItem.keyValues.Add(valuesToSet[i]);
-                        }
-                        #endregion
+                        outputItem.keyValues.Add(valueToSet);
                     }
-                    else
-                    {
-                        #region defaults to set
-                        // Initializing default value
-                        string valueToSet = fallbackDefaultValue;
-                        // Checking if there is a specific default value and if so, sets it
-                        if (defaultValues.FindIndex(x => x.Key.Equals(xmlAttribute)) != -1)
-                            valueToSet = defaultValues.Find(x => x.Key.Equals(xmlAttribute)).Value;
-
-                        //setting default-FValues
-                        for (int i = 0; i <= maxLength; i++)
-                        {
-                            outputItem.keyValues.Add(valueToSet);
-                        }
-                        #endregion
-                    }
-                    // Finally adding it for each item to the output-object
-                    outputData.Add(outputItem);
+                    #endregion
                 }
+                // Finally adding it for each item to the output-object
+                outputData.Add(outputItem);
+                
 
             }
 
             //check, if there are attributes in the presetData, which arent in the xmlAttributes, but have to be set
             foreach (KeyList presetItem in presetData)
             {
-                //finding none existing attribute; Exclude special case for "Favorit" and "M"
-                if (xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1 && !presetItem.keyName.Equals("Favorit") && !presetItem.keyName.Equals("M"))
+                //finding none existing attribute
+                if (xmlAttributes.FindIndex(x => x.Equals(presetItem.keyName)) == -1)
                 {
                     // Setting Name of XML-Attribute
                     KeyList outputItem = new KeyList(presetItem.keyName);
@@ -244,6 +227,45 @@ namespace Marvin_Tabelle_zu_xml
             #endregion
 
             return outputData;
+        }
+
+        /// <summary>
+        /// Handle special cases ("Favoriten" and "M") and remove them from Lists
+        /// </summary>
+        /// <param name="outputData">Object, in which anything that shoult be written in the XML-file is stored</param>
+        /// <param name="presetData">Ridden Names and Values</param>
+        /// <param name="xmlAttributes">Only names to generate values</param>
+        /// <param name="maxLength">Maximum length of any values-lits in <paramref name="outputData"/></param>
+        private static void specialCaseHandling(List<KeyList> outputData, List<KeyList> presetData, List<string> xmlAttributes, int maxLength)
+        {
+
+            // Check Parameter and remove special cases
+            if (xmlAttributes.FindIndex(x => x.Equals("Favorit")) != -1)
+                xmlAttributes.RemoveAt(xmlAttributes.FindIndex(x => x.Equals("Favorit")));
+
+            if (presetData.FindIndex(x => x.keyName.Equals("Favorit")) != -1)
+                presetData.RemoveAt(presetData.FindIndex(x => x.keyName.Equals("Favorit")));
+
+            if (xmlAttributes.FindIndex(x => x.Equals("M")) != -1)
+                xmlAttributes.RemoveAt(xmlAttributes.FindIndex(x => x.Equals("M")));
+
+            if (presetData.FindIndex(x => x.keyName.Equals("M")) == -1)
+                throw new ArgumentException("Die CSV-Date enthält keine 'M'-Spalte");
+
+            // Exclude special case for "Favorit" and "M"
+            KeyList outputItem = new KeyList("Favorit");
+            List<string> valuesToSet = presetData.Find(x => x.keyName.Equals("M")).keyValues;
+            // Checking if there is a specific default value and if so, sets it
+
+            // Setting favorite-values
+            for (int i = 0; i <= maxLength; i++)
+            {
+                outputItem.keyValues.Add(Settings.FavoritString + " M" + valuesToSet[i]);
+            }
+            outputData.Add(outputItem);
+            
+            // Remove "M"-Column to avoit being in output
+            presetData.RemoveAt(presetData.FindIndex(x => x.keyName.Equals("M"))); //TODO Wieso verursacht das einen Fehler?
         }
 
         /// <summary>
@@ -266,6 +288,9 @@ namespace Marvin_Tabelle_zu_xml
                 //create header
                 /*string header = "<?xml version=\"1.0\" standalone=\"yes\"?>";
                  fileStream.Write(Encoding.UTF8.GetBytes(header), 0, Encoding.UTF8.GetByteCount(header));*/
+
+                //clean content before writing
+                fileStream.SetLength(0);
                 using (XmlWriter writer = XmlWriter.Create(fileStream, settings))
                 {
                     // Write root-element
