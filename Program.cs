@@ -15,6 +15,9 @@ namespace Marvin_Tabelle_zu_xml
         /// <param name="args"></param>
         public static async System.Threading.Tasks.Task Main(string[] args)
         {
+
+            Settings settings = new Settings();
+            settings.readSettingsFromFile();
             #region Get input-parameter
             string OutputFilePath="";
             string InputFilePath = "";
