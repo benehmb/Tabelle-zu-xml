@@ -13,14 +13,17 @@ namespace Marvin_Tabelle_zu_xml
         /// main methode
         /// </summary>
         /// <param name="args"></param>
-        public static async System.Threading.Tasks.Task Main(string[] args)
+        public static void Main(string[] args)
         {
 
-            Settings settings = new Settings();
-            settings.readSettingsFromFile();
+            // Initialize the settings
+            Settings settings = new Settings(@"C:\Users\Benedikt\source\repos\Marvin Tabelle zu xml\Settings.xml");
+
             #region Get input-parameter
             string OutputFilePath="";
             string InputFilePath = "";
+
+            // Reading arguments, if passed
             if (args.Length != 0)
             {
                 for (int i = 0; i < args.Length; i+=2)
@@ -39,6 +42,7 @@ namespace Marvin_Tabelle_zu_xml
                     }
                 }
             }
+            // Getting paths if not passed via arguments
             if (String.IsNullOrEmpty(InputFilePath))
                 InputFilePath = getFilePath("Pfad zur CSV-datei: ");
 
@@ -47,25 +51,28 @@ namespace Marvin_Tabelle_zu_xml
             #endregion
 
             #region Check input-parameter
+            // Basic checking, if paths are valid
             if (!InputFilePath.ToLower().EndsWith(".csv") && (File.GetAttributes(OutputFilePath) & FileAttributes.Directory) != FileAttributes.Directory)
                 throw new ArgumentException("Der angegebene Pfad ist nicht gültig!");
 
             if (OutputFilePath.EndsWith("\\"))
-                OutputFilePath += Settings.OutputFile;
+                OutputFilePath += settings.OutputFile;
             else if((File.GetAttributes(OutputFilePath) & FileAttributes.Directory) == FileAttributes.Directory)
-                OutputFilePath += "\\" + Settings.OutputFile;
+                OutputFilePath += "\\" + settings.OutputFile;
             else if (!OutputFilePath.ToLower().EndsWith(".xml"))
                 throw new ArgumentException("Der angegebene Pfad ist nicht gültig!");
 
             // Set output-file-path
-            Settings.OutputFile = OutputFilePath;
+            settings.OutputFile = OutputFilePath;
             #endregion
 
             // Get given data
-            List<KeyList> PresetData = readContent(InputFilePath);
+            Console.WriteLine("Reading content...");
+            List<KeyList> PresetData = readContent(InputFilePath, settings.Delimiter);
 
             // Prepare given data and Settings for output
-            List<KeyList> OutputValues = createAndCompareValues(PresetData, Settings.getValues(), Settings.DefaultValues, Settings.DefaultValue); ;
+            Console.WriteLine("Compareing values...");
+            List<KeyList> OutputValues = createAndCompareValues(PresetData, settings);
 
             Console.WriteLine("Names and Values: ");
             foreach (KeyList outputValue in OutputValues)
@@ -76,10 +83,12 @@ namespace Marvin_Tabelle_zu_xml
             }
 
             // Write anything in XML-file
-            await generateXmlFileAsync(OutputValues, Settings.OutputFile);
+            Console.WriteLine("Writing values into XML-file...");
+            generateXmlFile(OutputValues, settings.OutputFile);
 
 
             // Suspend the screen.  
+            Console.WriteLine("Finished!");
             System.Console.ReadLine();
         }
 
@@ -106,7 +115,7 @@ namespace Marvin_Tabelle_zu_xml
         /// </summary>
         /// <param name="filepath">path to file</param>
         /// <returns><see cref="KeyList"/> object, containing values of file</returns>
-        private static List<KeyList> readContent(string filepath)
+        private static List<KeyList> readContent(string filepath, char delimiter)
         {
             // Create empty ist in which all the Data of the File is stored
             List<KeyList> tabelDatas = new List<KeyList>();
@@ -118,7 +127,7 @@ namespace Marvin_Tabelle_zu_xml
             System.IO.StreamReader file = new System.IO.StreamReader(filepath);
             while ((line = file.ReadLine()) != null)
             {
-                string[] lineContent = line.Split(Settings.Delimiter);
+                string[] lineContent = line.Split(delimiter);
                 // Do nothing if there is nothing in this line
                 if (lineContent[0] != "" || lineContent[0] != " " || lineContent.Length <= 0)
                 {
@@ -144,15 +153,17 @@ namespace Marvin_Tabelle_zu_xml
         /// Make a List of Names and Values to print in xml vie <see cref="createAndCompareValues(List{KeyList}, List{string})"/>
         /// </summary>
         /// <param name="presetData">Ridden Names and Values</param>
-        /// <param name="xmlAttributes">Only names to generate values</param>
-        /// <param name="defaultValues">Default values for some of the <paramref name="xmlAttributes"/></param>
-        /// <param name="fallbackDefaultValue">Default value if there is no value set in <paramref name="presetData"/> and <paramref name="defaultValues"/></param>
+        /// <param name="settings">The initializes <see cref="Settings"/>-object</param>
         /// <returns>Complete list with names and values</returns>
-        private static List<KeyList> createAndCompareValues(List<KeyList> presetData, List<string> xmlAttributes, List<KeyValuePair<string, string>> defaultValues, string fallbackDefaultValue)
+        private static List<KeyList> createAndCompareValues(List<KeyList> presetData, Settings settings)
         {
             #region initialize
+            // Getting some settings
+            List<string> xmlAttributes = settings.getXmlAttributes();
+            List<KeyValuePair<string, string>> defaultValues = settings.DefaultValues;
+
             //set the maximum lenght of each list to the shortes row of the original Table to prevent null-pointer
-            // count -1 becaus we want the biggest i#ndex
+            // count -1 becaus we want the biggest index
             int maxLength = presetData[0].keyValues.Count() - 1;
 
             foreach (KeyList preset in presetData)
@@ -168,7 +179,7 @@ namespace Marvin_Tabelle_zu_xml
             #endregion
             #region compareism
             //Handling special cases ("Favorit" and "M")
-            specialCaseHandling(outputData, presetData, xmlAttributes, maxLength);
+            specialCaseHandling(outputData, presetData, xmlAttributes, maxLength, settings.FavoritString);
 
             // Filling output list
             foreach (string xmlAttribute in xmlAttributes)
@@ -193,7 +204,7 @@ namespace Marvin_Tabelle_zu_xml
                 {
                     #region defaults to set
                     // Initializing default value
-                    string valueToSet = fallbackDefaultValue;
+                    string valueToSet = settings.FallbackDefaultValue;
                     // Checking if there is a specific default value and if so, sets it
                     if (defaultValues.FindIndex(x => x.Key.Equals(xmlAttribute)) != -1)
                         valueToSet = defaultValues.Find(x => x.Key.Equals(xmlAttribute)).Value;
@@ -239,7 +250,8 @@ namespace Marvin_Tabelle_zu_xml
         /// <param name="presetData">Ridden Names and Values</param>
         /// <param name="xmlAttributes">Only names to generate values</param>
         /// <param name="maxLength">Maximum length of any values-lits in <paramref name="outputData"/></param>
-        private static void specialCaseHandling(List<KeyList> outputData, List<KeyList> presetData, List<string> xmlAttributes, int maxLength)
+        /// <param name="favoritString">String to write before "M"-values</param>
+        private static void specialCaseHandling(List<KeyList> outputData, List<KeyList> presetData, List<string> xmlAttributes, int maxLength, string favoritString)
         {
 
             // Check Parameter and remove special cases
@@ -263,7 +275,7 @@ namespace Marvin_Tabelle_zu_xml
             // Setting favorite-values
             for (int i = 0; i <= maxLength; i++)
             {
-                outputItem.keyValues.Add(Settings.FavoritString + " M" + valuesToSet[i]);
+                outputItem.keyValues.Add(favoritString + " M" + valuesToSet[i]);
             }
             outputData.Add(outputItem);
             
@@ -277,13 +289,10 @@ namespace Marvin_Tabelle_zu_xml
         /// <param name="tabelDatas">names and values to generate/replace</param>
         /// <param name="lists">all names</param>
         /// <param name="outputFile">file to store XML</param>
-        private static async System.Threading.Tasks.Task generateXmlFileAsync(List<KeyList> outputValues, string outputFile)
+        private static void generateXmlFile(List<KeyList> outputValues, string outputFile)
         {
             // Set some settings
-            XmlWriterSettings settings = new XmlWriterSettings()
-            {
-                Async = true,
-            };
+            XmlWriterSettings settings = new XmlWriterSettings();
 
             //create filestream
             using (FileStream fileStream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None))
@@ -297,23 +306,23 @@ namespace Marvin_Tabelle_zu_xml
                 using (XmlWriter writer = XmlWriter.Create(fileStream, settings))
                 {
                     // Write root-element
-                    await writer.WriteStartElementAsync(null, "DocumentElement", null);
+                    writer.WriteStartElement(null, "DocumentElement", null);
                     // for each column
                     for (int i = 0; i < outputValues[0].keyValues.Count; i++)
                     {
-                        await writer.WriteStartElementAsync(null, "Favoriten", null);
+                        writer.WriteStartElement(null, "Favoriten", null);
 
                         //for each row
                         for (int j = 0; j < outputValues.Count; j++)
                         {
-                            await writer.WriteStartElementAsync(null, outputValues[j].keyName, null);
-                            await writer.WriteStringAsync(outputValues[j].keyValues[i]);
-                            await writer.WriteEndElementAsync();
+                            writer.WriteStartElement(null, outputValues[j].keyName, null);
+                            writer.WriteString(outputValues[j].keyValues[i]);
+                            writer.WriteEndElement();
                         }
-                        await writer.WriteEndElementAsync();
+                        writer.WriteEndElement();
                     }
                     //TODO for each element in data
-                    await writer.WriteEndElementAsync();
+                    writer.WriteEndElement();
                     writer.Close();
                 }
                 fileStream.Close();

@@ -4,27 +4,27 @@
 	<FavoritString>Senkung Zylinderkopf ISO 4762</FavoritString>
 	<OutputFile>Senkungenoutput.xml</OutputFile>
 	<FallbackDefaultValue>n.v.</FallbackDefaultValue>
-	<Values>
-		<Value>Favorit</Value>
-		<Value>Bohrungstyp</Value>
-		<Value>Ø</Value>
-		<Value>Ø_x0020_Tol.</Value>
-		<Value>Flach</Value>
-		<Value>Ausführungstyp</Value>
-		<Value>Abstand</Value>
-		<Value>Abst._x0020_Tol.</Value>
-		<Value>Ø_2</Value>
-		<Value>Ø_2_x0020_Tol.</Value>
-		<Value>Tiefe</Value>
-		<Value>Tiefe_x0020_Tol.</Value>
-		<Value>Winkel</Value>
-		<Value>Gewindebez</Value>
-		<Value>Gewindetyp</Value>
-		<Value>Norm</Value>
-		<Value>Klasse</Value>
-		<Value>volle_x0020_Tiefe</Value>
-		<Value>Gewindetiefe</Value>
-	</Values>
+	<XMLAttributes>
+		<XMLAttribute>Favorit</XMLAttribute>
+		<XMLAttribute>Bohrungstyp</XMLAttribute>
+		<XMLAttribute>Ø</XMLAttribute>
+		<XMLAttribute>Ø_x0020_Tol.</XMLAttribute>
+		<XMLAttribute>Flach</XMLAttribute>
+		<XMLAttribute>Ausführungstyp</XMLAttribute>
+		<XMLAttribute>Abstand</XMLAttribute>
+		<XMLAttribute>Abst._x0020_Tol.</XMLAttribute>
+		<XMLAttribute>Ø_2</XMLAttribute>
+		<XMLAttribute>Ø_2_x0020_Tol.</XMLAttribute>
+		<XMLAttribute>Tiefe</XMLAttribute>
+		<XMLAttribute>Tiefe_x0020_Tol.</XMLAttribute>
+		<XMLAttribute>Winkel</XMLAttribute>
+		<XMLAttribute>Gewindebez</XMLAttribute>
+		<XMLAttribute>Gewindetyp</XMLAttribute>
+		<XMLAttribute>Norm</XMLAttribute>
+		<XMLAttribute>Klasse</XMLAttribute>
+		<XMLAttribute>volle_x0020_Tiefe</XMLAttribute>
+		<XMLAttribute>Gewindetiefe</XMLAttribute>
+	</XMLAttributes>
 	<DefaultValues>
 		<DefaultValue name="Bohrungstyp">Zapfen</DefaultValue>
 		<DefaultValue name="Flach">ja</DefaultValue>
@@ -34,5 +34,6 @@
 		<DefaultValue name="Ø_2_x0020_Tol.">H13(E)</DefaultValue>
 		<DefaultValue name="Tiefe_x0020_Tol.>">0,01 mm/0 mm(B)</DefaultValue>
 	</DefaultValues>
+
 </Settings>
 
