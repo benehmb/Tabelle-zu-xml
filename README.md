@@ -4,7 +4,7 @@
 
 ## General
 
-Dieses Programm wandelt nicht jede Beliebige Tabelle zu einer XML um. Es ist lediglich für ein bestimmtes Inventor-Plugin gedacht: <name einfügen>
+Dieses Programm wandelt nicht jede Beliebige Tabelle zu einer XML um. Es ist lediglich für ein bestimmtes Inventor-Plugin gedacht: Inventor-Tools Basispaket 2020
 
 ## Verwendung
 
